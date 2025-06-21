@@ -1,6 +1,18 @@
+.form-floating .form-control {
+    border-radius: 1rem;
+}
+
+.badge.bg-info {
+    background: linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%) !important;
+    color: #1b4965 !important;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px #bde0fe80;
+}
+
 .completed {
     text-decoration: line-through;
-    color: #b0b0b0;
+    color: #b0b0b0 !important;
     opacity: 0.7;
     transition: color 0.3s, opacity 0.3s;
 }

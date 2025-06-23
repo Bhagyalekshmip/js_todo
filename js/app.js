@@ -6,12 +6,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load todos from localStorage on page load
     let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    let currentPage = 1;
+    const pageSize = 5;
+    let filteredTodos = null; // for search
+
+    // Pagination controls
+    let paginationDiv = document.createElement('div');
+    paginationDiv.className = 'd-flex justify-content-center my-3';
+    productList.parentNode.appendChild(paginationDiv);
+
+    function renderPagination(totalPages) {
+        paginationDiv.innerHTML = '';
+        if (totalPages <= 1) return;
+        const ul = document.createElement('ul');
+        ul.className = 'pagination';
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = 'page-item' + (i === currentPage ? ' active' : '');
+            const a = document.createElement('a');
+            a.className = 'page-link';
+            a.href = '#';
+            a.textContent = i;
+            a.onclick = function (e) {
+                e.preventDefault();
+                currentPage = i;
+                renderTodos();
+            };
+            li.appendChild(a);
+            ul.appendChild(li);
+        }
+        paginationDiv.appendChild(ul);
+    }
 
     function renderTodos() {
         // Sort by due date descending
-        todos.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+        const list = filteredTodos !== null ? filteredTodos : todos;
+        list.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
         productList.innerHTML = '';
-        todos.forEach((todo, idx) => {
+        const totalPages = Math.ceil(list.length / pageSize) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = startIdx + pageSize;
+        list.slice(startIdx, endIdx).forEach((todo, idx) => {
+            const realIdx = filteredTodos !== null ? todos.indexOf(todo) : startIdx + idx;
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center px-4 py-3 shadow-sm mb-3 rounded-3';
 
@@ -30,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             contentDiv.appendChild(span);
             contentDiv.appendChild(badge);
-            
 
             // Complete button
             const completeBtn = document.createElement('button');
@@ -97,8 +133,9 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteBtn.title = 'Delete';
             deleteBtn.innerHTML = '<i class="bi bi-trash-fill"></i>';
             deleteBtn.onclick = function () {
-                todos.splice(idx, 1);
+                todos.splice(realIdx, 1);
                 localStorage.setItem('todos', JSON.stringify(todos));
+                if (filteredTodos) filteredTodos.splice(idx, 1);
                 renderTodos();
             };
 
@@ -112,8 +149,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             productList.appendChild(li);
         });
+        renderPagination(totalPages);
     }
 
+    // Search input functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function () {
+        const searchTerm = searchInput.value.toLowerCase();
+        filteredTodos = todos.filter(todo =>
+            todo.name.toLowerCase().includes(searchTerm) ||
+            todo.dueDate.includes(searchTerm)
+        );
+        currentPage = 1;
+        renderTodos();
+    });
 
     // Create modal HTML and append to body if not exists
     function ensureDeleteModal() {
@@ -187,6 +236,8 @@ document.addEventListener('DOMContentLoaded', function () {
         productInput.classList.add('is-valid');
         dueDateInput.classList.add('is-valid');
         productForm.reset();
+        filteredTodos = null;
+        currentPage = 1;
         renderTodos();
         productInput.value = '';
         dueDateInput.value = '';

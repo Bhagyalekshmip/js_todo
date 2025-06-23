@@ -216,6 +216,8 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteIdx = null;
             deleteModal.hide();
         }
+        const deleteToast = new bootstrap.Toast(document.getElementById('deleteToast'));
+       deleteToast.show();
     };
 
     productForm.addEventListener('submit', function (e) {
@@ -230,6 +232,9 @@ document.addEventListener('DOMContentLoaded', function () {
             completed: false
         });
         localStorage.setItem('todos', JSON.stringify(todos));
+       // Show add toast
+       const addToast = new bootstrap.Toast(document.getElementById('addToast'));
+       addToast.show();
         // Clear inputs
         productInput.classList.remove('is-invalid');
         dueDateInput.classList.remove('is-invalid');

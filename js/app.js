@@ -4,11 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const dueDateInput = document.getElementById('dueDateInput');
     const productList = document.getElementById('productList');
 
-    let todos = [];
+    // Load todos from localStorage on page load
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
 
     function renderTodos() {
         // Sort by due date descending
-        todos.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        todos.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
         productList.innerHTML = '';
         todos.forEach((todo, idx) => {
             const li = document.createElement('li');
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             contentDiv.appendChild(span);
             contentDiv.appendChild(badge);
+            
 
             // Complete button
             const completeBtn = document.createElement('button');
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
             completeBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
             completeBtn.onclick = function () {
                 todo.completed = !todo.completed;
+                localStorage.setItem('todos', JSON.stringify(todos));
                 renderTodos();
             };
 
@@ -68,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (input.value.trim() !== '' && dateInput.value !== '') {
                         todo.name = input.value.trim();
                         todo.dueDate = dateInput.value;
+                        localStorage.setItem('todos', JSON.stringify(todos));
                         renderTodos();
                     }
                 };
@@ -94,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteBtn.innerHTML = '<i class="bi bi-trash-fill"></i>';
             deleteBtn.onclick = function () {
                 todos.splice(idx, 1);
+                localStorage.setItem('todos', JSON.stringify(todos));
                 renderTodos();
             };
 
@@ -109,6 +114,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+
+    
+
     productForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const productName = productInput.value.trim();
@@ -120,10 +128,17 @@ document.addEventListener('DOMContentLoaded', function () {
             dueDate: dueDate,
             completed: false
         });
-
+        localStorage.setItem('todos', JSON.stringify(todos));
+        // Clear inputs
+        productInput.classList.remove('is-invalid');
+        dueDateInput.classList.remove('is-invalid');
+        productInput.classList.add('is-valid');
+        dueDateInput.classList.add('is-valid');
+        productForm.reset();
         renderTodos();
         productInput.value = '';
         dueDateInput.value = '';
+        productInput.focus();
     });
 
     renderTodos();

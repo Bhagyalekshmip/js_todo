@@ -115,7 +115,59 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    
+    // Create modal HTML and append to body if not exists
+    function ensureDeleteModal() {
+        if (document.getElementById('deleteModal')) return;
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to delete this item?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    ensureDeleteModal();
+
+    let deleteIdx = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    // Override delete button behavior in renderTodos
+    const originalRenderTodos = renderTodos;
+    renderTodos = function () {
+        originalRenderTodos();
+        // Re-attach delete modal logic
+        document.querySelectorAll('.btn-action.delete').forEach((btn, idx) => {
+            btn.onclick = function () {
+                deleteIdx = idx;
+                deleteModal.show();
+            };
+        });
+    };
+
+    confirmDeleteBtn.onclick = function () {
+        if (deleteIdx !== null) {
+            todos.splice(deleteIdx, 1);
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+            deleteIdx = null;
+            deleteModal.hide();
+        }
+    };
 
     productForm.addEventListener('submit', function (e) {
         e.preventDefault();
